@@ -32,7 +32,7 @@ const producteSchema = new mongoose.Schema({
         required: [true, 'L\'estoc és obligatori'],
         min: [0, 'L\'estoc no pot ser negatiu']
     },
-    sku: {
+    codigo_barras: {
         type: String,
         unique: true,
         required: [true, 'El SKU és obligatori']

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 // Subesquema per a l'Adreça (relació TE 1:N)
 const adrecaSchema = new mongoose.Schema({
@@ -79,7 +80,7 @@ const usuariSchema = new mongoose.Schema({
     },
     password_hash: {
         type: String,
-        required: true
+        required: [true, 'La contrasenya és obligatòria']
     },
     telefon: {
         type: String,
@@ -93,12 +94,30 @@ const usuariSchema = new mongoose.Schema({
         },
         default: 'client'
     },
-    adreces: [adrecaSchema], // Embegut (relació TE)
-    metodes_pagament: [metodePagamentSchema], // Embegut (relació DISPOSA)
+    actiu: {
+        type: Boolean,
+        default: true
+    },
+    adreces: [adrecaSchema],
+    metodes_pagament: [metodePagamentSchema],
     data_registre: {
         type: Date,
         default: Date.now
     }
+}, {
+    timestamps: true
 });
+
+// Middleware PRE-SAVE: Encripta la contrasenya abans de desar si s'ha modificat
+usuariSchema.pre('save', async function () {
+    if (!this.isModified('password_hash')) return;
+    const salt = await bcrypt.genSalt(10);
+    this.password_hash = await bcrypt.hash(this.password_hash, salt);
+});
+
+// Mètode per comparar contrasenyes
+usuariSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password_hash);
+};
 
 module.exports = mongoose.model('Usuari', usuariSchema);

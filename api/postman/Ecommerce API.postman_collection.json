@@ -1,0 +1,395 @@
+{
+  "info": {
+    "_postman_id": "6d9818de-729f-46c2-b16b-f68c1a5d7889",
+    "name": "Ecommerce API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58986650"
+  },
+  "item": [
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Crear Categoria",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Fruites Fresques\", \"slug\": \"fruites-fresques\", \"description\": \"Fruita de temporada\", \"active\": true}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtenir Categories per estat actiu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories?active=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtenir Categoria per ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6ada3d894698511995415ee8",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "6ada3d894698511995415ee8"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualitzar Categoria",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6ada3d894698511995415ee8",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "6ada3d894698511995415ee8"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Categoria",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6ada3d894698511995415ee8",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "6ada3d894698511995415ee8"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Crear Usuari",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", () => {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "pm.test(\"Response is JSON\", () => {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "pm.test(\"No exposa passwordHash\", () => {\r",
+                  "    const response = pm.response.json();\r",
+                  "    const obj = response.data || response;\r",
+                  "    if (Array.isArray(obj)) {\r",
+                  "        obj.forEach(item => pm.expect(item).to.not.have.property(\"password_hash\"));\r",
+                  "    } else {\r",
+                  "        pm.expect(obj).to.not.have.property(\"password_hash\");\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nom\": \"Joan\",\r\n  \"cognoms\": \"Pérez\",\r\n  \"email\": \"joan@example.com\",\r\n  \"password\": \"Password123\",\r\n  \"telefon\": \"600123456\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Llistar Usuaris",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtenir Usuari per ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6ada4a3d09bc58cf5d2df072",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "6ada4a3d09bc58cf5d2df072"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualitzar Usuari",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nom\": \"Joan Modificat\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6ada4a3d09bc58cf5d2df072",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "6ada4a3d09bc58cf5d2df072"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Usuari",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/6ada4a3d09bc58cf5d2df072",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "6ada4a3d09bc58cf5d2df072"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Crear Producte",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nom\": \"Tomàquet Raf Ecològic\",\r\n  \"descripcio\": \"Tomàquet de qualitat superior del Vallès\",\r\n  \"preu\": 3.50,\r\n  \"unitat\": \"kg\",\r\n  \"stock\": 100,\r\n  \"codigo_barras\": \"8410000123456\",\r\n  \"categoria_id\": \"A_AQUI_EL_ID_DE_UNA_CATEGORIA_EXISTENT\",\r\n  \"actiu\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Llistar Productes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?active=true&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtenir Producte per ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/6ada3e1e4698511995415eeb",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "6ada3e1e4698511995415eeb"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualitzar Producte",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"preu\": 3.90,\r\n  \"stock\": 85\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/6ada3e1e4698511995415eeb",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "6ada3e1e4698511995415eeb"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Producte",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/6ada3e1e4698511995415eeb",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "6ada3e1e4698511995415eeb"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
