@@ -1,0 +1,8 @@
+# Ignorar archivos de entorno en cualquier carpeta
+.env
+.env.*
+! .env.example
+
+# Dependencias y compilaciones
+node_modules/
+dist/
