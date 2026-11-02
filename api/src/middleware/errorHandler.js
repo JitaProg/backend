@@ -1,6 +1,11 @@
+// QUÈ FA: converteix qualsevol error en una resposta JSON comuna.
+// AMB QUÈ CONNECTA: rep els errors que els controladors passen amb next(error)
+// i els retorna al client amb el codi HTTP adequat.
 const errorHandler = (err, req, res, next) => {
-    let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    let code = 'INTERNAL_SERVER_ERROR';
+    // Si el servei ha definit statusCode/code (401, 403...), els respectem.
+    let statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+    // err.code pot ser numèric (MongoDB 11000) o un text propi (INVALID_CREDENTIALS).
+    let code = typeof err.code === 'string' ? err.code : 'INTERNAL_SERVER_ERROR';
     let message = err.message || 'Error intern del servidor';
     let details = [];
 

@@ -1,3 +1,7 @@
+// QUÈ FA: defineix l'esquema d'usuari i la seguretat de la contrasenya.
+// AMB QUÈ CONNECTA:
+//   - MongoDB: col·lecció 'usuaris' (mongoose.model al final).
+//   - bcryptjs: xifra i compara les contrasenyes.
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -71,6 +75,9 @@ const usuariSchema = new mongoose.Schema({
         type: String,
         required: [true, 'El correu electrònic és obligatori'],
         unique: true,
+        // Guardem l'email en minúscules i sense espais per evitar duplicats.
+        lowercase: true,
+        trim: true,
         validate: {
             validator: function (v) {
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
@@ -80,7 +87,11 @@ const usuariSchema = new mongoose.Schema({
     },
     password_hash: {
         type: String,
-        required: [true, 'La contrasenya és obligatòria']
+        required: [true, 'La contrasenya és obligatòria'],
+        // Es valida la contrasenya en text pla abans del pre('save').
+        minlength: [8, 'La contrasenya ha de tenir com a mínim 8 caràcters'],
+        // select: false = aquest camp no surt mai a les consultes tret que es demani expressament.
+        select: false
     },
     telefon: {
         type: String,
@@ -108,16 +119,28 @@ const usuariSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Middleware PRE-SAVE: Encripta la contrasenya abans de desar si s'ha modificat
+// Middleware PRE-SAVE: s'executa ABANS de desar a MongoDB.
+// Si la contrasenya ha canviat, la converteix en un hash amb bcryptjs.
 usuariSchema.pre('save', async function () {
     if (!this.isModified('password_hash')) return;
     const salt = await bcrypt.genSalt(10);
     this.password_hash = await bcrypt.hash(this.password_hash, salt);
 });
 
-// Mètode per comparar contrasenyes
+// Mètode per comparar contrasenyes.
+// Compara la contrasenya escrita al login amb el hash desat (bcryptjs).
+// Retorna true/false; no desxifra mai el hash.
 usuariSchema.methods.comparePassword = async function (candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password_hash);
 };
+
+// S'executa quan el document es converteix a JSON (res.json d'Express).
+// Elimina el hash perquè mai surti a la resposta HTTP.
+usuariSchema.set('toJSON', {
+    transform: (doc, ret) => {
+        delete ret.password_hash;
+        return ret;
+    }
+});
 
 module.exports = mongoose.model('Usuari', usuariSchema);

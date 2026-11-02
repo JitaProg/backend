@@ -1,4 +1,11 @@
+// QUÈ FA: conté la lògica de negoci dels usuaris (CRUD, registre i login).
+// AMB QUÈ CONNECTA:
+//   - Model Usuari -> MongoDB.
+//   - bcryptjs (a través del model) per xifrar i comparar contrasenyes.
+//   - jsonwebtoken per generar el token del login.
+const jwt = require('jsonwebtoken');
 const Usuari = require('../models/usuari');
+const { createError } = require('../utils/httpError');
 
 const getAllUsers = async (queryParams = {}) => {
     const { active, name, sort, page = 1, limit = 10 } = queryParams;
@@ -70,6 +77,67 @@ const createUser = async (userData) => {
     return userObj;
 };
 
+// REGISTRE: només agafa els camps públics (whitelist).
+// Això evita que el client enviï camps com rol o actiu i escali privilegis.
+const registerUser = async (userData) => {
+    const { nom, cognoms, email, password, telefon } = userData;
+
+    if (!password) {
+        // 422 = dades no vàlides (falta un camp obligatori).
+        throw createError(422, 'VALIDATION_ERROR', 'La contrasenya és obligatòria');
+    }
+
+    const user = new Usuari({
+        nom,
+        cognoms,
+        email,
+        password_hash: password,
+        telefon
+    });
+
+    await user.save();
+    return user;
+};
+
+// Crea el JWT que el client farà servir a les rutes protegides.
+// El payload és mínim (id, email, role) i se signa amb JWT_SECRET.
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user._id.toString(), email: user.email, role: user.rol },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+    );
+};
+
+// LOGIN: 1) busca l'usuari, 2) comprova la contrasenya, 3) genera el token.
+const loginUser = async (email, password) => {
+    if (!email || !password) {
+        throw createError(400, 'VALIDATION_ERROR', 'Cal indicar el correu i la contrasenya');
+    }
+
+    // El model amaga password_hash per defecte; aquí el necessitem per comparar.
+    const user = await Usuari.findOne({ email: email.toLowerCase().trim() })
+        .select('+password_hash');
+
+    if (!user) {
+        // Mateix missatge que amb contrasenya incorrecta: no revelem si l'email existeix.
+        throw createError(401, 'INVALID_CREDENTIALS', 'Correu o contrasenya incorrectes');
+    }
+
+    if (!user.actiu) {
+        // Usuari desactivat (soft delete): no pot iniciar sessió.
+        throw createError(403, 'ACCOUNT_DISABLED', "L'usuari està desactivat");
+    }
+
+    // comparePassword ve del model i utilitza bcryptjs.
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+        throw createError(401, 'INVALID_CREDENTIALS', 'Correu o contrasenya incorrectes');
+    }
+
+    return { user, token: generateToken(user) };
+};
+
 const updateUser = async (id, userData) => {
     if (userData.password || userData.password_hash) {
         delete userData.password;
@@ -94,6 +162,8 @@ module.exports = {
     getAllUsers,
     getUserById,
     createUser,
+    registerUser,
+    loginUser,
     updateUser,
     deleteUser
 };

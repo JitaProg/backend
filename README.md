@@ -8,6 +8,7 @@
 * **Backend**: Node.js, Express.js
 * **Base de Dades**: MongoDB, Mongoose (Models orientats a documentació NoSQL)
 * **Validació i Control**: Validadors personalitzats de Mongoose, sistemes de paginació i filtrat avançat.
+* **Seguretat**: Hash de contrasenyes amb `bcryptjs` i autenticació mitjançant JWT (`jsonwebtoken`).
 * **Proves i Documentació**: Postman (Col·lecció "Ecommerce API" amb entorn local i scripts de test automatitzats).
 
 ---
@@ -24,11 +25,21 @@ L'API s'estructura al entorn de rutes `/api` amb controladors unificats que reto
 * **DELETE /:id**: Baixa lògica (*soft delete* modificant l'estat a `actiu: false`).
 
 ### 2. Usuaris (`/api/users`)
-* **POST**: Registrar un nou usuari (amb xifrat de contrasenya).
+* **POST /register**: Registrar un nou usuari (amb xifrat de contrasenya i whitelist de camps).
+* **POST /login**: Autenticar un usuari i retornar un token JWT.
+* **GET /me**: Obtenir el perfil de l'usuari autenticat (requereix `Authorization: Bearer <token>`).
+* **POST**: Crear un usuari des del CRUD d'administració.
 * **GET**: Llistar usuaris de forma paginada.
 * **GET /:id**: Consultar un usuari per ID (assegurant que **mai** s'exposa el camp `password_hash`).
 * **PUT /:id**: Actualitzar dades de l'usuari.
 * **DELETE /:id**: Baixa lògica de l'usuari.
+
+#### Autenticació amb JWT
+1. `POST /api/users/register` amb `nom`, `cognoms`, `email`, `password` i `telefon` opcional.
+2. `POST /api/users/login` amb `email` i `password`; la resposta inclou `data.token`.
+3. Enviar el token a les rutes protegides: `Authorization: Bearer <token>`.
+
+El token caduca segons `JWT_EXPIRES_IN` (per defecte `1h`).
 
 ### 3. Productes (`/api/products`)
 * **POST**: Crear un producte associat a una categoria existent (`categoria_id` amb referència Mongoose), validant preu superior a 0, estoc no negatiu i codi de barres (*SKU*) únic.
@@ -76,7 +87,14 @@ npm install
 
 3️⃣ Configurar les variables d'entorn
 
-Crea un fitxer .arxiu o .env amb la connexió a la teva base de dades local de MongoDB i el port del servidor (per defecte 3000).
+Crea un fitxer `.env` a partir de `api/.env.example` amb la connexió a la teva base de dades local de MongoDB, el port del servidor (per defecte 3000) i el secret per als tokens JWT:
+
+```
+PORT=3000
+MONGO_URI=mongodb://127.0.0.1:27017/ecommerce
+JWT_SECRET=<cadena_llarga_i_aleatòria>
+JWT_EXPIRES_IN=1h
+```
 
 4️⃣ Executar l'aplicació
 ```bash
