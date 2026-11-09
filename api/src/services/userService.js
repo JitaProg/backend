@@ -2,8 +2,7 @@
 // AMB QUÈ CONNECTA:
 //   - Model Usuari -> MongoDB.
 //   - bcryptjs (a través del model) per xifrar i comparar contrasenyes.
-//   - jsonwebtoken per generar el token del login.
-const jwt = require('jsonwebtoken');
+//   - tokenService.js genera els tokens un cop les credencials són correctes.
 const Usuari = require('../models/usuari');
 const { createError } = require('../utils/httpError');
 
@@ -99,17 +98,8 @@ const registerUser = async (userData) => {
     return user;
 };
 
-// Crea el JWT que el client farà servir a les rutes protegides.
-// El payload és mínim (id, email, role) i se signa amb JWT_SECRET.
-const generateToken = (user) => {
-    return jwt.sign(
-        { id: user._id.toString(), email: user.email, role: user.rol },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
-    );
-};
-
-// LOGIN: 1) busca l'usuari, 2) comprova la contrasenya, 3) genera el token.
+// LOGIN: 1) busca l'usuari, 2) comprova la contrasenya i 3) retorna l'usuari.
+// El controlador és qui demana a tokenService el parell access token + refresh token.
 const loginUser = async (email, password) => {
     if (!email || !password) {
         throw createError(400, 'VALIDATION_ERROR', 'Cal indicar el correu i la contrasenya');
@@ -135,7 +125,7 @@ const loginUser = async (email, password) => {
         throw createError(401, 'INVALID_CREDENTIALS', 'Correu o contrasenya incorrectes');
     }
 
-    return { user, token: generateToken(user) };
+    return user;
 };
 
 const updateUser = async (id, userData) => {

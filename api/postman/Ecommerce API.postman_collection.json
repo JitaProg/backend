@@ -174,8 +174,14 @@
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
-                  "pm.test(\"Retorna un token\", () => pm.expect(body.data.token).to.be.a(\"string\"));",
-                  "pm.collectionVariables.set(\"token\", body.data.token);"
+                  "pm.test(\"Retorna accessToken i refreshToken\", () => {",
+                  "    pm.expect(body.data.accessToken).to.be.a(\"string\");",
+                  "    pm.expect(body.data.refreshToken).to.be.a(\"string\");",
+                  "    pm.expect(body.data.token).to.eql(body.data.accessToken);",
+                  "});",
+                  "pm.collectionVariables.set(\"accessToken\", body.data.accessToken);",
+                  "pm.collectionVariables.set(\"refreshToken\", body.data.refreshToken);",
+                  "pm.collectionVariables.set(\"token\", body.data.accessToken);"
                 ],
                 "type": "text/javascript",
                 "packages": {}
@@ -215,7 +221,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{token}}",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -228,6 +234,224 @@
                 "api",
                 "users",
                 "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Renovar Tokens (Refresh)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Retorna un nou parell de tokens\", () => {",
+                  "    pm.expect(body.data.accessToken).to.be.a(\"string\");",
+                  "    pm.expect(body.data.refreshToken).to.be.a(\"string\");",
+                  "});",
+                  "pm.collectionVariables.set(\"refreshTokenAnterior\", pm.collectionVariables.get(\"refreshToken\"));",
+                  "pm.collectionVariables.set(\"accessToken\", body.data.accessToken);",
+                  "pm.collectionVariables.set(\"refreshToken\", body.data.refreshToken);",
+                  "pm.collectionVariables.set(\"token\", body.data.accessToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"refreshTokenLogout\", pm.collectionVariables.get(\"refreshToken\"));"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"refreshToken\": \"{{refreshToken}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reutilitzar Refresh Token (rebuig)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"Detecta la reutilització i revoca la família\", () => {",
+                  "    pm.expect(body.error.code).to.eql(\"REFRESH_TOKEN_REUSED\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"refreshToken\": \"{{refreshTokenAnterior}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh després de Logout (rebuig)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", () => pm.response.to.have.status(401));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"El refresh token està revocat\", () => {",
+                  "    pm.expect(body.error.code).to.eql(\"REFRESH_TOKEN_REVOKED\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"refreshToken\": \"{{refreshTokenLogout}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout de tots els dispositius",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.unset(\"accessToken\");",
+                  "pm.collectionVariables.unset(\"refreshToken\");",
+                  "pm.collectionVariables.unset(\"token\");"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/logout-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "logout-all"
               ]
             }
           },
